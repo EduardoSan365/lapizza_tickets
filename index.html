@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="productos.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -55,11 +56,16 @@
                 </h1>
                 <p class="text-[10px] uppercase tracking-[0.3em] text-gray-500 font-black italic">Ticket Manager</p>
             </div>
-            <button @click="limpiarPedido()" class="p-3 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg active:scale-90 transition-transform">
+            <div class="flex items-center gap-3">
+                <button @click="init()" class="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/10 shadow active:scale-90 transition-transform" title="Forzar recarga desde Sheets">
+                    ⟳
+                </button>
+                <button @click="limpiarPedido()" class="p-3 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg active:scale-90 transition-transform">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
             </button>
+            </div>
         </header>
 
         <div class="mb-8 relative">
@@ -172,33 +178,44 @@
                 cantidades: {},
                 cliente: '',
                 async init() {
-                    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQrC3opn3zUEjLguHyw03Rqw1JC25VaA5oEkD_8BTrQHPrWqyGEcPeUs4joYLTju1ABkRg9q3mTgiw3/pub?output=csv";
-                    
+                    // use cache-busting to avoid stale published CSV
+                    const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQrC3opn3zUEjLguHyw03Rqw1JC25VaA5oEkD_8BTrQHPrWqyGEcPeUs4joYLTju1ABkRg9q3mTgiw3/pub?output=csv";
+                    const url = baseUrl + '&_=' + Date.now();
+                    const normalizeBool = (v) => {
+                        if (v === undefined || v === null) return true;
+                        const s = String(v).replace(/^\"|\"$/g, '').trim().toLowerCase();
+                        if (['true','1','yes','y','t','verdadero'].includes(s)) return true;
+                        if (['false','0','no','n','f','falso'].includes(s)) return false;
+                        return true;
+                    };
+
                     try {
                         const response = await fetch(url);
-                        if (!response.ok) throw new Error();
-                        const data = await response.text();
-                        
-                        const lines = data.split('\n').map(l => l.trim()).filter(l => l !== "");
-                        const headers = lines[0].toLowerCase().split(',');
-                        
-                        this.productos = lines.slice(1).map(line => {
-                            const values = line.split(',');
-                            const p = {};
-                            headers.forEach((header, i) => {
-                                let val = values[i]?.trim() || "";
-                                // Limpiar comillas si Google Sheets las agrega
-                                val = val.replace(/^"|"$/g, ''); 
-                                
-                                if (header === 'precio') val = parseInt(val.replace(/\D/g,'')) || 0;
-                                if (header === 'activo') val = val.toUpperCase().includes('TRUE');
-                                p[header] = val;
-                            });
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        const csv = await response.text();
+
+                        // Parse CSV robustly with PapaParse
+                        const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
+                        if (parsed.errors && parsed.errors.length) console.warn('PapaParse errors:', parsed.errors);
+
+                        // Map rows and normalize
+                        this.productos = parsed.data.map(row => {
+                            const p = {
+                                id: Number((row.id || row.ID || row.Id || '').toString().trim()) || 0,
+                                nombre: (row.nombre || row.Nombre || row.name || '').toString().trim(),
+                                descripcion: (row.descripcion || row.Descripcion || row.desc || '').toString().trim() || '',
+                                precio: parseInt((row.precio || row.Precio || row.price || '0').toString().replace(/\D/g,'')) || 0,
+                                categoria: (row.categoria || row.Categoria || row.cat || 'General').toString().trim(),
+                                activo: normalizeBool(row.activo || row.Activo || row.active || '')
+                            };
+                            console.debug('Parsed fila:', p.nombre, 'activo=', p.activo);
                             return p;
                         }).filter(p => p.nombre);
+                        console.info('Productos parseados (tabla):');
+                        console.table(this.productos.map(p => ({ id: p.id, nombre: p.nombre, activo: p.activo })));
 
                     } catch (e) {
-                        console.error("Fetch error:", e);
+                        console.error('Fetch error:', e);
                         // fallback to local PRODUCTOS if available
                         if (window.PRODUCTOS && Array.isArray(PRODUCTOS) && PRODUCTOS.length) {
                             console.warn('Usando PRODUCTOS local como fallback');
@@ -211,7 +228,7 @@
                                 activo: !!p.activo
                             }));
                         } else {
-                            alert("Error de conexión con la planilla.");
+                            alert('Error de conexión con la planilla.');
                         }
                     }
                 },
