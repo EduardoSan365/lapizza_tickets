@@ -83,15 +83,20 @@
                         <div class="glass-card product-card p-4 rounded-[24px] flex justify-between items-center border relative overflow-hidden"
                              :class="!p.activo ? 'is-disabled' : 'border-white/5'">
                             
-                            <div class="flex-1">
+                            <div class="flex-1 mr-4">
                                 <div class="flex flex-col gap-1">
                                     <template x-if="!p.activo">
-                                        <span class="w-fit bg-red-600 text-white text-[10px] px-3 py-0.5 rounded-full font-black uppercase mb-1 shadow-lg shadow-red-600/30">
+                                        <span class="w-fit bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black uppercase mb-1 shadow-lg shadow-red-600/30">
                                             ¡AGOTADO!
                                         </span>
                                     </template>
                                     <h3 class="font-bold text-gray-100 text-lg leading-tight" x-text="p.nombre"></h3>
-                                    <span class="text-amber-500 font-black text-sm">$<span x-text="p.precio.toLocaleString()"></span></span>
+                                    
+                                    <template x-if="p.descripcion">
+                                        <p class="text-[11px] text-gray-500 font-medium italic leading-snug" x-text="p.descripcion"></p>
+                                    </template>
+
+                                    <span class="text-amber-500 font-black text-sm mt-1">$<span x-text="p.precio.toLocaleString()"></span></span>
                                 </div>
                             </div>
                             
@@ -173,7 +178,6 @@
                         if (!response.ok) throw new Error();
                         const data = await response.text();
                         
-                        // Dividir por líneas y limpiar datos
                         const lines = data.split('\n').map(l => l.trim()).filter(l => l !== "");
                         const headers = lines[0].toLowerCase().split(',');
                         
@@ -182,6 +186,9 @@
                             const p = {};
                             headers.forEach((header, i) => {
                                 let val = values[i]?.trim() || "";
+                                // Limpiar comillas si Google Sheets las agrega
+                                val = val.replace(/^"|"$/g, ''); 
+                                
                                 if (header === 'precio') val = parseInt(val.replace(/\D/g,'')) || 0;
                                 if (header === 'activo') val = val.toUpperCase().includes('TRUE');
                                 p[header] = val;
@@ -191,7 +198,7 @@
 
                     } catch (e) {
                         console.error("Fetch error:", e);
-                        alert("Error de conexión. Prueba subiendo el archivo a Netlify o un servidor real.");
+                        alert("Error de conexión con la planilla.");
                     }
                 },
                 sumar(id) { 
