@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LA PIZZA - Sistema Cloud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        [x-cloak] { display: none !important; }
+        body { 
+            background-color: #050505; 
+            color: #fafafa; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-image: radial-gradient(circle at top right, #1a1a10, transparent);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .product-card:active:not(.is-disabled) { transform: scale(0.98); }
+        .input-premium {
+            background: #111;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+        .input-premium:focus { border-color: #f59e0b; outline: none; box-shadow: 0 0 15px rgba(245, 158, 11, 0.1); }
+        
+        .is-disabled { 
+            opacity: 0.4; 
+            filter: grayscale(0.8); 
+            pointer-events: none;
+            border-color: rgba(239, 68, 68, 0.2) !important;
+        }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    </style>
+</head>
+
+<body x-data="carritoApp()" x-init="init()">
+
+    <div class="max-w-md mx-auto p-5 pb-64">
+        <header class="flex justify-between items-center py-8">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tighter bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent italic text-shadow-lg">
+                    LA PIZZA
+                </h1>
+                <p class="text-[10px] uppercase tracking-[0.3em] text-gray-500 font-black italic">Ticket Manager</p>
+            </div>
+            <button @click="limpiarPedido()" class="p-3 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg active:scale-90 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </button>
+        </header>
+
+        <div class="mb-8 relative">
+            <label class="text-[10px] font-black text-amber-500/80 uppercase ml-2 mb-2 block tracking-widest text-center">Nombre del Cliente</label>
+            <input type="text" x-model="cliente" placeholder="Nombre"
+                class="input-premium w-full p-4 rounded-2xl text-white font-bold text-lg text-center shadow-inner">
+        </div>
+
+        <div x-show="productos.length === 0" class="text-center py-10">
+            <p class="text-amber-500 animate-pulse font-bold text-xs uppercase tracking-widest">Sincronizando menú...</p>
+        </div>
+
+        <template x-for="cat in ['Pizzas', 'Empanadas']">
+            <div class="mb-10" x-show="productos.some(p => p.categoria === cat)">
+                <div class="flex items-center gap-3 mb-5">
+                    <h2 x-text="cat" class="text-sm font-black uppercase tracking-[0.2em] text-gray-400"></h2>
+                    <div class="h-[1px] flex-1 bg-gradient-to-r from-gray-800 to-transparent"></div>
+                </div>
+
+                <div class="grid gap-3">
+                    <template x-for="p in productos.filter(i => i.categoria === cat)">
+                        <div class="glass-card product-card p-4 rounded-[24px] flex justify-between items-center border relative overflow-hidden"
+                             :class="!p.activo ? 'is-disabled' : 'border-white/5'">
+                            
+                            <div class="flex-1">
+                                <div class="flex flex-col gap-1">
+                                    <template x-if="!p.activo">
+                                        <span class="w-fit bg-red-600 text-white text-[10px] px-3 py-0.5 rounded-full font-black uppercase mb-1 shadow-lg shadow-red-600/30">
+                                            ¡AGOTADO!
+                                        </span>
+                                    </template>
+                                    <h3 class="font-bold text-gray-100 text-lg leading-tight" x-text="p.nombre"></h3>
+                                    <span class="text-amber-500 font-black text-sm">$<span x-text="p.precio.toLocaleString()"></span></span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center bg-black/40 rounded-2xl p-1 border border-white/5" x-show="p.activo">
+                                <button @click="restar(p.id)" class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white/5 transition text-xl">-</button>
+                                <span class="w-8 text-center font-extrabold text-amber-500 text-lg" x-text="cantidades[p.id] || 0"></span>
+                                <button @click="sumar(p.id)" class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500 text-black font-black shadow-lg shadow-amber-500/20 text-xl">+</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 z-50 p-4" x-show="productos.length > 0">
+        <div class="max-w-md mx-auto glass-card rounded-[32px] p-6 shadow-2xl border-t border-white/10 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+            
+            <div class="flex justify-between items-center mb-6 relative z-10 text-left">
+                <div>
+                    <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Pedido</p>
+                    <div class="flex flex-col">
+                        <span class="text-4xl font-black text-emerald-400 tracking-tighter leading-none">$<span x-text="total().toLocaleString()"></span></span>
+                        <span class="text-[10px] text-blue-400 font-bold mt-2 tracking-wide uppercase italic">Transferencia (+10%): $<span x-text="totalTransfe().toLocaleString()"></span></span>
+                    </div>
+                </div>
+                <div @click="toggleCart()" class="relative cursor-pointer group">
+                    <div class="bg-amber-500 text-black w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg group-active:scale-90 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                    </div>
+                    <span class="absolute -top-1 -right-1 bg-white text-black text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-black" x-text="itemsCount()"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 relative z-10 px-1">
+                <button @click="generarTicket()" class="bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all shadow-xl shadow-white/5">
+                    Generar Ticket
+                </button>
+                <button @click="enviarWhatsApp()" class="bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+                    WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div x-cloak x-show="showCart" x-transition.opacity class="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] p-6 flex items-center justify-center">
+        <div class="glass-card w-full max-w-sm rounded-[40px] border border-white/10 flex flex-col max-h-[80vh]">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <h3 class="font-black uppercase text-xs tracking-[0.2em] text-amber-500 text-center">Resumen Actual</h3>
+                <button @click="showCart = false" class="bg-white/5 p-2 rounded-full text-gray-400 font-black">✕</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-8 space-y-6 text-center">
+                <template x-for="item in detalleCarrito()">
+                    <div class="flex justify-between items-center border-b border-white/5 pb-4 text-left">
+                        <div>
+                            <p class="font-bold text-gray-100 text-lg leading-tight" x-text="item.nombre"></p>
+                            <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1" x-text="item.cant + ' Unidades'"></p>
+                        </div>
+                        <p class="font-mono text-amber-500 font-black text-base">$<span x-text="(item.cant * item.precio).toLocaleString()"></span></p>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function carritoApp() {
+            return {
+                productos: [],
+                showCart: false,
+                cantidades: {},
+                cliente: '',
+                async init() {
+                    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQrC3opn3zUEjLguHyw03Rqw1JC25VaA5oEkD_8BTrQHPrWqyGEcPeUs4joYLTju1ABkRg9q3mTgiw3/pub?output=csv";
+                    
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) throw new Error();
+                        const data = await response.text();
+                        
+                        // Dividir por líneas y limpiar datos
+                        const lines = data.split('\n').map(l => l.trim()).filter(l => l !== "");
+                        const headers = lines[0].toLowerCase().split(',');
+                        
+                        this.productos = lines.slice(1).map(line => {
+                            const values = line.split(',');
+                            const p = {};
+                            headers.forEach((header, i) => {
+                                let val = values[i]?.trim() || "";
+                                if (header === 'precio') val = parseInt(val.replace(/\D/g,'')) || 0;
+                                if (header === 'activo') val = val.toUpperCase().includes('TRUE');
+                                p[header] = val;
+                            });
+                            return p;
+                        }).filter(p => p.nombre);
+
+                    } catch (e) {
+                        console.error("Fetch error:", e);
+                        alert("Error de conexión. Prueba subiendo el archivo a Netlify o un servidor real.");
+                    }
+                },
+                sumar(id) { 
+                    this.cantidades[id] = (this.cantidades[id] || 0) + 1;
+                    if (navigator.vibrate) navigator.vibrate(15);
+                },
+                restar(id) { 
+                    if (this.cantidades[id] > 0) {
+                        this.cantidades[id]--;
+                        if (navigator.vibrate) navigator.vibrate(15);
+                    }
+                },
+                limpiarPedido() {
+                    if(confirm('¿Vaciamos el ticket actual?')) { this.cantidades = {}; this.cliente = ''; this.showCart = false; }
+                },
+                total() {
+                    return Object.keys(this.cantidades).reduce((acc, id) => {
+                        const p = this.productos.find(i => i.id == id);
+                        return acc + (p ? p.precio * this.cantidades[id] : 0);
+                    }, 0);
+                },
+                totalTransfe() { return Math.round(this.total() * 1.10) },
+                itemsCount() { return Object.values(this.cantidades).reduce((s, n) => s + (n || 0), 0) },
+                toggleCart() { if(this.itemsCount() > 0) this.showCart = !this.showCart },
+                detalleCarrito() {
+                    return Object.keys(this.cantidades).filter(id => this.cantidades[id] > 0).map(id => {
+                        const p = this.productos.find(i => i.id == id);
+                        return { nombre: p.nombre, cant: this.cantidades[id], precio: p.precio };
+                    });
+                },
+                enviarWhatsApp() {
+                    if (this.total() === 0) return alert("¡Ticket vacío!");
+                    let msj = `🍕 *LA PIZZA - NUEVO PEDIDO*%0A*Cliente:* ${this.cliente || 'Mostrador'}%0A%0A`;
+                    this.detalleCarrito().forEach(i => msj += `• ${i.cant}x ${i.nombre}%0A`);
+                    msj += `%0A💵 *Total Efectivo: $${this.total().toLocaleString()}*%0A💳 *Total Transferencia: $${this.totalTransfe().toLocaleString()}*`;
+                    window.open(`https://wa.me/1161060970?text=${msj}`, '_blank');
+                },
+                generarTicket() {
+                    if (this.total() === 0) return alert("¡Ticket vacío!");
+                    const rows = this.detalleCarrito().map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px"><span>${i.cant} x ${i.nombre}</span><span>$${(i.cant * i.precio).toLocaleString()}</span></div>`).join('');
+                    const ticketHtml = `<div style="padding:40px; font-family:'Courier New', monospace; color:black; background:white;"><center><h1 style="margin:0; font-size:26px; font-weight:bold">LA PIZZA</h1><p style="margin:5px 0; font-size:12px; letter-spacing:2px">COMPROBANTE DE VENTA</p><p style="font-size:10px">${new Date().toLocaleString()}</p></center><br><p style="font-size:12px"><strong>CLIENTE:</strong> ${this.cliente || 'Venta Mostrador'}</p><hr style="border:none; border-top:1px dashed black; margin:15px 0">${rows}<hr style="border:none; border-top:1px dashed black; margin:15px 0"><div style="display:flex; justify-content:space-between; font-size:18px; font-weight:bold; margin-top:10px"><span>TOTAL EFECTIVO:</span><span>$${this.total().toLocaleString()}</span></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-top:8px; color:#444"><span>TOTAL TRANSFERENCIA:</span><span>$${this.totalTransfe().toLocaleString()}</span></div><br><br><center><p style="font-size:10px; font-weight:bold italic">¡Gracias por tu compra!</p></center></div>`;
+                    const opt = { margin: 0, filename: `LA_PIZZA_${this.cliente || 'Ticket'}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: [80, 160], orientation: 'portrait' } };
+                    html2pdf().set(opt).from(ticketHtml).save();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
