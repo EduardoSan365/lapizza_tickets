@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="productos.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         [x-cloak] { display: none !important; }
@@ -168,41 +168,35 @@
                 cantidades: {},
                 cliente: '',
                 async init() {
-                    // LINK DE TU HOJA PUBLICADA
-                    const baseUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQrC3opn3zUEjLguHyw03Rqw1JC25VaA5oEkD_8BTrQHPrWqyGEcPeUs4joYLTju1ABkRg9q3mTgiw3/pub?output=csv";
-                    
-                    // Cache-busting para forzar actualización inmediata
-                    const url = baseUrl + '&_=' + Date.now();
-
-                    const normalizeBool = (v) => {
-                        if (v === undefined || v === null) return true;
-                        let s = String(v).trim().toLowerCase().replace(/[^a-z0-9]/gi,'');
-                        if (['true','1','yes','verdadero'].includes(s)) return true;
-                        if (['false','0','no','falso'].includes(s)) return false;
-                        return true;
-                    };
-
+                    const apiUrl = 'https://a365.com.ar/api/pizzas/get?_=' + Date.now();
                     try {
-                        const response = await fetch(url);
-                        if (!response.ok) throw new Error();
-                        const csv = await response.text();
-                        
-                        const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
-                        
-                        this.productos = parsed.data.map(row => {
-                            return {
-                                id: row.id || row.ID || 0,
-                                nombre: (row.nombre || row.Nombre || '').toString().trim(),
-                                descripcion: (row.descripcion || row.Descripcion || '').toString().trim(),
-                                precio: parseInt((row.precio || '0').toString().replace(/\D/g,'')) || 0,
-                                categoria: (row.categoria || row.Categoria || 'Pizzas').toString().trim(),
-                                activo: normalizeBool(row.activo || row.Activo)
-                            };
-                        }).filter(p => p.nombre);
-
-                        console.log("Menú sincronizado:", this.productos);
+                        const res = await fetch(apiUrl);
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        const data = await res.json();
+                        this.productos = (Array.isArray(data) ? data : []).map(r => ({
+                            id: Number(r.id) || 0,
+                            nombre: String(r.nombre || '').trim(),
+                            descripcion: (r.descripcion === null || r.descripcion === undefined) ? '' : String(r.descripcion).trim(),
+                            precio: Number(r.precio) || 0,
+                            categoria: String(r.categoria || 'General').trim(),
+                            activo: !!r.activo
+                        })).filter(p => p.nombre);
+                        console.log('Productos cargados desde API:', this.productos);
                     } catch (e) {
-                        alert("Error de sincronización. Reintente en unos minutos.");
+                        console.error('API fetch error:', e);
+                        if (window.PRODUCTOS && Array.isArray(PRODUCTOS) && PRODUCTOS.length) {
+                            console.warn('Usando PRODUCTOS local como fallback');
+                            this.productos = PRODUCTOS.map(p => ({
+                                id: Number(p.id) || 0,
+                                nombre: String(p.nombre || '').trim(),
+                                descripcion: p.descripcion || '',
+                                precio: Number(p.precio) || 0,
+                                categoria: p.categoria || 'General',
+                                activo: !!p.activo
+                            }));
+                        } else {
+                            alert('Error cargando productos. Intente más tarde.');
+                        }
                     }
                 },
                 sumar(id) { 
@@ -227,7 +221,7 @@
                 detalleCarrito() {
                     return Object.keys(this.cantidades).filter(id => this.cantidades[id] > 0).map(id => {
                         const p = this.productos.find(i => i.id == id);
-                        return { nombre: p.nombre, cant: this.cantidades[id], precio: p.precio };
+                        return { nombre: p.nombre, descripcion: p.descripcion || '', cant: this.cantidades[id], precio: p.precio };
                     });
                 },
                 limpiarPedido() {
@@ -241,11 +235,45 @@
                     window.open(`https://wa.me/1161060970?text=${msj}`, '_blank');
                 },
                 generarTicket() {
-                    if (this.total() === 0) return alert("¡Ticket vacío!");
-                    const rows = this.detalleCarrito().map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px"><span>${i.cant} x ${i.nombre}</span><span>$${(i.cant * i.precio).toLocaleString()}</span></div>`).join('');
-                    const ticketHtml = `<div style="padding:40px; font-family:'Courier New', monospace; color:black; background:white;"><center><h1 style="margin:0; font-size:26px; font-weight:bold">LA PIZZA</h1><p style="margin:5px 0; font-size:12px; letter-spacing:2px">COMPROBANTE DE VENTA</p><p style="font-size:10px">${new Date().toLocaleString()}</p></center><br><p style="font-size:12px"><strong>CLIENTE:</strong> ${this.cliente || 'Venta Mostrador'}</p><hr style="border:none; border-top:1px dashed black; margin:15px 0">${rows}<hr style="border:none; border-top:1px dashed black; margin:15px 0"><div style="display:flex; justify-content:space-between; font-size:18px; font-weight:bold; margin-top:10px"><span>TOTAL EFECTIVO:</span><span>$${this.total().toLocaleString()}</span></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-top:8px; color:#444"><span>TOTAL TRANSFERENCIA:</span><span>$${this.totalTransfe().toLocaleString()}</span></div><br><br><center><p style="font-size:10px; font-weight:bold italic">¡Gracias por tu compra!</p></center></div>`;
-                    const opt = { margin: 0, filename: `LA_PIZZA_${this.cliente || 'Ticket'}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: [80, 160], orientation: 'portrait' } };
-                    html2pdf().set(opt).from(ticketHtml).save();
+                    if (this.total() === 0) return alert('¡Ticket vacío!');
+                    const rows = this.detalleCarrito().map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px"><span>${i.cant} x ${i.nombre}${i.descripcion ? ' - ' + i.descripcion : ''}</span><span>$${(i.cant * i.precio).toLocaleString()}</span></div>`).join('');
+                    const ticketHtmlContent = `<div style="padding:24px; font-family:'Courier New', monospace; color:#000; background:#fff; max-width:320px;">
+                        <div style="text-align:center"><h2 style="margin:0;font-size:20px">LA PIZZA</h2><p style="margin:6px 0;font-size:11px;letter-spacing:1px">COMPROBANTE DE VENTA</p><p style="font-size:10px">${new Date().toLocaleString()}</p></div>
+                        <p style="font-size:12px"><strong>CLIENTE:</strong> ${this.cliente || 'Venta Mostrador'}</p>
+                        <hr style="border:none;border-top:1px dashed #ccc;margin:10px 0">${rows}
+                        <hr style="border:none;border-top:1px dashed #ccc;margin:10px 0">
+                        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold"><span>TOTAL EFECTIVO:</span><span>$${this.total().toLocaleString()}</span></div>
+                        <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-top:6px"><span>TOTAL TRANSFERENCIA:</span><span>$${this.totalTransfe().toLocaleString()}</span></div>
+                        <p style="text-align:center;margin-top:12px;font-size:11px;font-weight:bold">¡Gracias por tu compra!</p>
+                    </div>`;
+
+                    const opt = { margin: 0.1, filename: `LA_PIZZA_${(this.cliente||'Ticket').toString().replace(/\s+/g,'_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: [80, 160], orientation: 'portrait' } };
+
+                    const tryHtml2Pdf = () => {
+                        if (typeof html2pdf === 'undefined' || typeof html2pdf !== 'function') return Promise.reject(new Error('html2pdf not available'));
+                        const temp = document.createElement('div');
+                        temp.style.position = 'fixed';
+                        temp.style.left = '-9999px';
+                        temp.style.top = '0';
+                        temp.style.background = '#fff';
+                        temp.innerHTML = ticketHtmlContent;
+                        document.body.appendChild(temp);
+                        return html2pdf().set(opt).from(temp).save().then(() => { try { document.body.removeChild(temp); } catch(e){} });
+                    };
+
+                    const fallbackPrint = () => {
+                        try { alert('Se abrirá la vista de impresión. Elige "Guardar como PDF" si deseas un archivo.'); } catch(e){}
+                        const w = window.open('', '_blank');
+                        if (!w) return alert('No se pudo abrir la ventana de impresión. Revisa el bloqueador de ventanas.');
+                        const fullHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ticket</title><style>body{font-family:Courier, monospace;margin:0;padding:20px;background:#fff;color:#000} .center{text-align:center}</style></head><body>${ticketHtmlContent}</body></html>`;
+                        w.document.open();
+                        w.document.write(fullHtml);
+                        w.document.close();
+                        w.focus();
+                        w.onload = () => { try { w.print(); } catch(e){ console.error(e); } };
+                    };
+
+                    tryHtml2Pdf().catch(() => fallbackPrint());
                 }
             }
         }
