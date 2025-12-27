@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="productos.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         [x-cloak] { display: none !important; }
@@ -198,7 +199,20 @@
 
                     } catch (e) {
                         console.error("Fetch error:", e);
-                        alert("Error de conexión con la planilla.");
+                        // fallback to local PRODUCTOS if available
+                        if (window.PRODUCTOS && Array.isArray(PRODUCTOS) && PRODUCTOS.length) {
+                            console.warn('Usando PRODUCTOS local como fallback');
+                            this.productos = PRODUCTOS.map(p => ({
+                                id: p.id,
+                                nombre: p.nombre,
+                                descripcion: p.descripcion || '',
+                                precio: p.precio || 0,
+                                categoria: p.categoria || 'General',
+                                activo: !!p.activo
+                            }));
+                        } else {
+                            alert("Error de conexión con la planilla.");
+                        }
                     }
                 },
                 sumar(id) { 
@@ -238,10 +252,49 @@
                 },
                 generarTicket() {
                     if (this.total() === 0) return alert("¡Ticket vacío!");
-                    const rows = this.detalleCarrito().map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px"><span>${i.cant} x ${i.nombre}</span><span>$${(i.cant * i.precio).toLocaleString()}</span></div>`).join('');
-                    const ticketHtml = `<div style="padding:40px; font-family:'Courier New', monospace; color:black; background:white;"><center><h1 style="margin:0; font-size:26px; font-weight:bold">LA PIZZA</h1><p style="margin:5px 0; font-size:12px; letter-spacing:2px">COMPROBANTE DE VENTA</p><p style="font-size:10px">${new Date().toLocaleString()}</p></center><br><p style="font-size:12px"><strong>CLIENTE:</strong> ${this.cliente || 'Venta Mostrador'}</p><hr style="border:none; border-top:1px dashed black; margin:15px 0">${rows}<hr style="border:none; border-top:1px dashed black; margin:15px 0"><div style="display:flex; justify-content:space-between; font-size:18px; font-weight:bold; margin-top:10px"><span>TOTAL EFECTIVO:</span><span>$${this.total().toLocaleString()}</span></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-top:8px; color:#444"><span>TOTAL TRANSFERENCIA:</span><span>$${this.totalTransfe().toLocaleString()}</span></div><br><br><center><p style="font-size:10px; font-weight:bold italic">¡Gracias por tu compra!</p></center></div>`;
-                    const opt = { margin: 0, filename: `LA_PIZZA_${this.cliente || 'Ticket'}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: [80, 160], orientation: 'portrait' } };
-                    html2pdf().set(opt).from(ticketHtml).save();
+
+                    const rows = this.detalleCarrito().map(i => `<div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px"><span>${i.cant} x ${i.nombre}${i.descripcion ? ' - ' + i.descripcion : ''}</span><span>$${(i.cant * i.precio).toLocaleString()}</span></div>`).join('');
+                    const ticketHtmlContent = `<div style="padding:24px; font-family:'Courier New', monospace; color:#000; background:#fff; max-width:320px;">
+                        <div style="text-align:center"><h2 style="margin:0;font-size:20px">LA PIZZA</h2><p style="margin:6px 0;font-size:11px;letter-spacing:1px">COMPROBANTE DE VENTA</p><p style="font-size:10px">${new Date().toLocaleString()}</p></div>
+                        <p style="font-size:12px"><strong>CLIENTE:</strong> ${this.cliente || 'Venta Mostrador'}</p>
+                        <hr style="border:none;border-top:1px dashed #ccc;margin:10px 0">${rows}
+                        <hr style="border:none;border-top:1px dashed #ccc;margin:10px 0">
+                        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold"><span>TOTAL EFECTIVO:</span><span>$${this.total().toLocaleString()}</span></div>
+                        <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-top:6px"><span>TOTAL TRANSFERENCIA:</span><span>$${this.totalTransfe().toLocaleString()}</span></div>
+                        <p style="text-align:center;margin-top:12px;font-size:11px;font-weight:bold">¡Gracias por tu compra!</p>
+                    </div>`;
+
+                    const opt = { margin: 0.1, filename: `LA_PIZZA_${(this.cliente||'Ticket').toString().replace(/\s+/g,'_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: [80, 160], orientation: 'portrait' } };
+
+                    // Try html2pdf with a temporary DOM node first (more reliable than passing raw string)
+                    const tryHtml2Pdf = () => {
+                        if (typeof html2pdf !== 'function' && typeof html2pdf === 'undefined') return Promise.reject(new Error('html2pdf not available'));
+                        const temp = document.createElement('div');
+                        temp.style.position = 'fixed';
+                        temp.style.left = '-9999px';
+                        temp.style.top = '0';
+                        temp.style.background = '#fff';
+                        temp.innerHTML = ticketHtmlContent;
+                        document.body.appendChild(temp);
+                        return html2pdf().set(opt).from(temp).save().then(() => { try { document.body.removeChild(temp); } catch(e){} });
+                    };
+
+                    // Fallback: open print preview in new window (wait for load)
+                    const fallbackPrint = () => {
+                        try { alert('Se abrirá la vista de impresión. Elige "Guardar como PDF" si deseas un archivo.'); } catch(e){}
+                        const w = window.open('', '_blank');
+                        if (!w) return alert('No se pudo abrir la ventana de impresión. Revisa el bloqueador de ventanas.');
+                        const fullHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ticket</title>
+                            <style>body{font-family:Courier, monospace;margin:0;padding:20px;background:#fff;color:#000} .center{text-align:center}</style></head><body>${ticketHtmlContent}</body></html>`;
+                        w.document.open();
+                        w.document.write(fullHtml);
+                        w.document.close();
+                        w.focus();
+                        w.onload = () => { try { w.print(); } catch(e){ console.error(e); } };
+                    };
+
+                    // Execute
+                    tryHtml2Pdf().catch(() => fallbackPrint());
                 }
             }
         }
