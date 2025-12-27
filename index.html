@@ -112,9 +112,10 @@
     <div class="fixed bottom-0 left-0 right-0 z-50 p-4" x-show="productos.length > 0">
         <div class="max-w-md mx-auto glass-card rounded-[32px] p-6 shadow-2xl border-t border-white/10 relative overflow-hidden">
             <div class="flex justify-between items-center mb-6 relative z-10 text-left">
-                <div>
+                <div class="flex-1">
                     <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Pedido</p>
-                    <div class="flex flex-col">
+                    <p class="text-xs text-amber-500 font-bold mt-1 truncate" x-text="cliente || '👤 Sin nombre'"></p>
+                    <div class="flex flex-col mt-2">
                         <span class="text-4xl font-black text-emerald-400 leading-none">$<span x-text="total().toLocaleString()"></span></span>
                         <span class="text-[10px] text-blue-400 font-bold mt-2 tracking-wide uppercase italic">Transferencia (+10%): $<span x-text="totalTransfe().toLocaleString()"></span></span>
                     </div>
@@ -229,12 +230,13 @@
                 },
                 generarTicket() {
                     if (this.total() === 0) return alert('¡Ticket vacío!');
+                    if (!this.cliente.trim()) return alert('⚠️ Por favor ingresa el nombre del cliente');
                     
                     // Generar contenido del ticket en texto (más portable para compartir)
                     const ticketTexto = `LA PIZZA - COMPROBANTE DE VENTA
 
 Fecha: ${new Date().toLocaleString()}
-Cliente: ${this.cliente || 'Venta Mostrador'}
+Cliente: ${this.cliente}
 
 ${this.detalleCarrito().map(i => `${i.cant}x ${i.nombre}${i.descripcion ? ' - ' + i.descripcion : ''}  $${(i.cant * i.precio).toLocaleString()}`).join('\n')}
 
