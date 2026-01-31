@@ -8,37 +8,59 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="productos.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
     <style>
-        [x-cloak] { display: none !important; }
-        body { 
-            background-color: #050505; 
-            color: #fafafa; 
+        [x-cloak] {
+            display: none !important;
+        }
+
+        body {
+            background-color: #050505;
+            color: #fafafa;
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-image: radial-gradient(circle at top right, #1a1a10, transparent);
             min-height: 100vh;
         }
+
         .glass-card {
             background: rgba(26, 26, 26, 0.6);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
         }
-        .product-card:active:not(.is-disabled) { transform: scale(0.98); }
+
+        .product-card:active:not(.is-disabled) {
+            transform: scale(0.98);
+        }
+
         .input-premium {
             background: #111;
             border: 1px solid #333;
             transition: all 0.3s ease;
         }
-        .input-premium:focus { border-color: #f59e0b; outline: none; box-shadow: 0 0 15px rgba(245, 158, 11, 0.1); }
-        .is-disabled { 
-            opacity: 0.4; 
-            filter: grayscale(0.8); 
+
+        .input-premium:focus {
+            border-color: #f59e0b;
+            outline: none;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
+        }
+
+        .is-disabled {
+            opacity: 0.4;
+            filter: grayscale(0.8);
             pointer-events: none;
             border-color: rgba(239, 68, 68, 0.2) !important;
         }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
     </style>
 </head>
 
@@ -47,25 +69,33 @@
     <div class="max-w-md mx-auto p-5 pb-64">
         <header class="flex justify-between items-center py-8">
             <div>
-                <h1 class="text-4xl font-extrabold tracking-tighter bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent italic text-shadow-lg">
+                <h1
+                    class="text-4xl font-extrabold tracking-tighter bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent italic text-shadow-lg">
                     LA PIZZA
                 </h1>
             </div>
-            <button @click="limpiarPedido()" class="p-3 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg active:scale-90 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <button @click="limpiarPedido()"
+                class="p-3 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg active:scale-90 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 <span class="text-[9px] font-black uppercase tracking-widest">Vaciar Carrito</span>
             </button>
         </header>
 
         <div class="mb-8 relative">
-            <label class="text-[10px] font-black text-amber-500/80 uppercase ml-2 mb-2 block tracking-widest text-center">Nombre del Cliente</label>
-            <input type="text" x-model="cliente" placeholder="Nombre" class="input-premium w-full p-4 rounded-2xl text-white font-bold text-lg text-center shadow-inner">
+            <label
+                class="text-[10px] font-black text-amber-500/80 uppercase ml-2 mb-2 block tracking-widest text-center">Nombre
+                del Cliente</label>
+            <input type="text" x-model="cliente" placeholder="Nombre"
+                class="input-premium w-full p-4 rounded-2xl text-white font-bold text-lg text-center shadow-inner">
         </div>
 
         <div x-show="productos.length === 0" class="text-center py-20">
-            <p class="text-amber-500 animate-pulse font-bold tracking-widest text-xs uppercase italic">Sincronizando menú...</p>
+            <p class="text-amber-500 animate-pulse font-bold tracking-widest text-xs uppercase italic">Sincronizando
+                menú...</p>
         </div>
 
         <template x-for="cat in ['Pizzas', 'Empanadas']">
@@ -78,29 +108,36 @@
                 <div class="grid gap-3">
                     <template x-for="p in productos.filter(i => i.categoria === cat)">
                         <div class="glass-card product-card p-4 rounded-[24px] flex justify-between items-center border relative overflow-hidden"
-                             :class="!p.activo ? 'is-disabled' : 'border-white/5'">
-                            
+                            :class="!p.activo ? 'is-disabled' : 'border-white/5'">
+
                             <div class="flex-1 mr-4">
                                 <div class="flex flex-col gap-1">
                                     <template x-if="!p.activo">
-                                        <span class="w-fit bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black uppercase mb-1 shadow-lg shadow-red-600/30">
+                                        <span
+                                            class="w-fit bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black uppercase mb-1 shadow-lg shadow-red-600/30">
                                             ¡AGOTADO!
                                         </span>
                                     </template>
                                     <h3 class="font-bold text-gray-100 text-lg leading-tight" x-text="p.nombre"></h3>
-                                    
+
                                     <template x-if="p.descripcion">
-                                        <p class="text-[11px] text-gray-500 font-medium italic leading-snug" x-text="p.descripcion"></p>
+                                        <p class="text-[11px] text-gray-500 font-medium italic leading-snug"
+                                            x-text="p.descripcion"></p>
                                     </template>
 
-                                    <span class="text-amber-500 font-black text-sm mt-1">$<span x-text="p.precio.toLocaleString()"></span></span>
+                                    <span class="text-amber-500 font-black text-sm mt-1">$<span
+                                            x-text="p.precio.toLocaleString()"></span></span>
                                 </div>
                             </div>
-                            
-                            <div class="flex items-center bg-black/40 rounded-2xl p-1 border border-white/5" x-show="p.activo">
-                                <button @click="restar(p.id)" class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white/5 transition text-xl text-white">-</button>
-                                <span class="w-8 text-center font-extrabold text-amber-500 text-lg" x-text="cantidades[p.id] || 0"></span>
-                                <button @click="sumar(p.id)" class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500 text-black font-black shadow-lg text-xl">+</button>
+
+                            <div class="flex items-center bg-black/40 rounded-2xl p-1 border border-white/5"
+                                x-show="p.activo">
+                                <button @click="restar(p.id)"
+                                    class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white/5 transition text-xl text-white">-</button>
+                                <span class="w-8 text-center font-extrabold text-amber-500 text-lg"
+                                    x-text="cantidades[p.id] || 0"></span>
+                                <button @click="sumar(p.id)"
+                                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500 text-black font-black shadow-lg text-xl">+</button>
                             </div>
                         </div>
                     </template>
@@ -110,44 +147,61 @@
     </div>
 
     <div class="fixed bottom-0 left-0 right-0 z-50 p-4" x-show="productos.length > 0">
-        <div class="max-w-md mx-auto glass-card rounded-[32px] p-6 shadow-2xl border-t border-white/10 relative overflow-hidden">
+        <div
+            class="max-w-md mx-auto glass-card rounded-[32px] p-6 shadow-2xl border-t border-white/10 relative overflow-hidden">
             <div class="flex justify-between items-center mb-6 relative z-10 text-left">
                 <div class="flex-1">
                     <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Pedido</p>
                     <p class="text-xs text-amber-500 font-bold mt-1 truncate" x-text="cliente || '👤 Sin nombre'"></p>
                     <div class="flex flex-col mt-2">
-                        <span class="text-4xl font-black text-emerald-400 leading-none">$<span x-text="total().toLocaleString()"></span></span>
-                        <span class="text-[10px] text-blue-400 font-bold mt-2 tracking-wide uppercase italic">Transferencia (+10%): $<span x-text="totalTransfe().toLocaleString()"></span></span>
+                        <span class="text-4xl font-black text-emerald-400 leading-none">$<span
+                                x-text="total().toLocaleString()"></span></span>
+                        <span
+                            class="text-[10px] text-blue-400 font-bold mt-2 tracking-wide uppercase italic">Transferencia
+                            (+10%): $<span x-text="totalTransfe().toLocaleString()"></span></span>
                     </div>
                 </div>
                 <div @click="toggleCart()" class="relative cursor-pointer group">
-                    <div class="bg-amber-500 text-black w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg group-active:scale-90 transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                    <div
+                        class="bg-amber-500 text-black w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg group-active:scale-90 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
                     </div>
-                    <span class="absolute -top-1 -right-1 bg-white text-black text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-black" x-text="itemsCount()"></span>
+                    <span
+                        class="absolute -top-1 -right-1 bg-white text-black text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-black"
+                        x-text="itemsCount()"></span>
                 </div>
             </div>
 
             <div class="w-full relative z-10 px-1">
-                <button @click="generarTicket()" class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Generar Ticket</button>
+                <button @click="generarTicket()"
+                    class="w-full bg-white text-black py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">Generar
+                    Ticket</button>
             </div>
         </div>
     </div>
 
-    <div x-cloak x-show="showCart" x-transition.opacity class="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] p-6 flex items-center justify-center">
+    <div x-cloak x-show="showCart" x-transition.opacity
+        class="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] p-6 flex items-center justify-center">
         <div class="glass-card w-full max-w-sm rounded-[40px] border border-white/10 flex flex-col max-h-[80vh]">
             <div class="p-8 border-b border-white/5 flex justify-between items-center">
                 <h3 class="font-black uppercase text-xs tracking-[0.2em] text-amber-500 text-center">Resumen Actual</h3>
-                <button @click="showCart = false" class="bg-white/5 p-2 rounded-full text-gray-400 font-black">✕</button>
+                <button @click="showCart = false"
+                    class="bg-white/5 p-2 rounded-full text-gray-400 font-black">✕</button>
             </div>
             <div class="flex-1 overflow-y-auto p-8 space-y-6">
                 <template x-for="item in detalleCarrito()">
                     <div class="flex justify-between items-center border-b border-white/5 pb-4">
                         <div class="text-left">
                             <p class="font-bold text-gray-100 text-lg leading-tight" x-text="item.nombre"></p>
-                            <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1" x-text="item.cant + ' Unidades'"></p>
+                            <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1"
+                                x-text="item.cant + ' Unidades'"></p>
                         </div>
-                        <p class="font-mono text-amber-500 font-black text-base">$<span x-text="(item.cant * item.precio).toLocaleString()"></span></p>
+                        <p class="font-mono text-amber-500 font-black text-base">$<span
+                                x-text="(item.cant * item.precio).toLocaleString()"></span></p>
                     </div>
                 </template>
             </div>
@@ -193,11 +247,11 @@
                         }
                     }
                 },
-                sumar(id) { 
+                sumar(id) {
                     this.cantidades[id] = (this.cantidades[id] || 0) + 1;
                     if (navigator.vibrate) navigator.vibrate(15);
                 },
-                restar(id) { 
+                restar(id) {
                     if (this.cantidades[id] > 0) {
                         this.cantidades[id]--;
                         if (navigator.vibrate) navigator.vibrate(15);
@@ -211,7 +265,7 @@
                 },
                 totalTransfe() { return Math.round(this.total() * 1.10) },
                 itemsCount() { return Object.values(this.cantidades).reduce((s, n) => s + (n || 0), 0) },
-                toggleCart() { if(this.itemsCount() > 0) this.showCart = !this.showCart },
+                toggleCart() { if (this.itemsCount() > 0) this.showCart = !this.showCart },
                 detalleCarrito() {
                     return Object.keys(this.cantidades).filter(id => this.cantidades[id] > 0).map(id => {
                         const p = this.productos.find(i => i.id == id);
@@ -219,7 +273,7 @@
                     });
                 },
                 limpiarPedido() {
-                    if(confirm('¿Vaciamos el ticket actual?')) { this.cantidades = {}; this.cliente = ''; this.showCart = false; }
+                    if (confirm('¿Vaciamos el ticket actual?')) { this.cantidades = {}; this.cliente = ''; this.showCart = false; }
                 },
                 enviarWhatsApp() {
                     if (this.total() === 0) return alert("¡Ticket vacío!");
@@ -231,7 +285,7 @@
                 generarTicket() {
                     if (this.total() === 0) return alert('¡Ticket vacío!');
                     if (!this.cliente.trim()) return alert('⚠️ Por favor ingresa el nombre del cliente');
-                    
+
                     // Generar contenido del ticket en texto (más portable para compartir)
                     const ticketTexto = `LA PIZZA - COMPROBANTE DE VENTA
 
@@ -243,6 +297,7 @@ ${this.detalleCarrito().map(i => `${i.cant}x ${i.nombre}${i.descripcion ? ' - ' 
 ─────────────────────────────
 TOTAL EFECTIVO: $${this.total().toLocaleString()}
 TOTAL TRANSFERENCIA: $${this.totalTransfe().toLocaleString()}
+Alias: valeria.eli.cabrera
 ─────────────────────────────
 
 ¡Gracias por tu compra!`;
@@ -267,4 +322,5 @@ TOTAL TRANSFERENCIA: $${this.totalTransfe().toLocaleString()}
         }
     </script>
 </body>
+
 </html>
