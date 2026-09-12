@@ -100,7 +100,8 @@
 
         <template x-for="cat in ['Pizzas', 'Empanadas', 'Hot Dogs']">
             <div class="mb-10" x-show="cat === 'Hot Dogs' || productos.some(p => p.categoria === cat)">
-                <div class="flex items-center gap-3 mb-5">
+                <div class="flex items-center gap-2.5 mb-5">
+                    <span class="text-xl" x-text="cat === 'Pizzas' ? '🍕' : (cat === 'Empanadas' ? '🥟' : '🌭')"></span>
                     <h2 x-text="cat" class="text-sm font-black uppercase tracking-[0.2em] text-gray-400"></h2>
                     <div class="h-[1px] flex-1 bg-gradient-to-r from-gray-800 to-transparent"></div>
                 </div>
@@ -120,7 +121,10 @@
                                                 ¡AGOTADO!
                                             </span>
                                         </template>
-                                        <h3 class="font-bold text-gray-100 text-lg leading-tight" x-text="p.nombre"></h3>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-base shrink-0" x-text="p.categoria === 'Pizzas' ? '🍕' : '🥟'"></span>
+                                            <h3 class="font-bold text-gray-100 text-lg leading-tight" x-text="p.nombre"></h3>
+                                        </div>
 
                                         <template x-if="p.descripcion">
                                             <p class="text-[11px] text-gray-500 font-medium italic leading-snug"
@@ -252,7 +256,10 @@
                 <template x-for="item in detalleCarrito()">
                     <div class="flex justify-between items-center border-b border-white/5 pb-4">
                         <div class="text-left pr-2">
-                            <p class="font-bold text-gray-100 text-lg leading-tight" x-text="item.nombre"></p>
+                            <p class="font-bold text-gray-100 text-lg leading-tight flex items-center gap-1.5">
+                                <span x-text="item.icono"></span>
+                                <span x-text="item.nombre"></span>
+                            </p>
                             <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1"
                                 x-text="item.cant + ' Unidades'"></p>
                             <template x-if="item.descripcion">
@@ -517,11 +524,13 @@
                 detalleCarrito() {
                     const items = Object.keys(this.cantidades).filter(id => this.cantidades[id] > 0).map(id => {
                         const p = this.productos.find(i => i.id == id);
+                        const icono = p && p.categoria === 'Empanadas' ? '🥟' : '🍕';
                         return { 
                             nombre: p ? p.nombre : 'Producto', 
                             descripcion: p ? (p.descripcion || '') : '', 
                             cant: this.cantidades[id], 
-                            precio: p ? p.precio : 0 
+                            precio: p ? p.precio : 0,
+                            icono: icono
                         };
                     });
 
@@ -530,7 +539,8 @@
                             nombre: 'Hot Dog',
                             descripcion: this.formatoAderezosTicket(hd.aderezos),
                             cant: hd.cant,
-                            precio: hd.precio
+                            precio: hd.precio,
+                            icono: '🌭'
                         });
                     });
 
