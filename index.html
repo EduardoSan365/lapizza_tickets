@@ -98,50 +98,105 @@
                 menú...</p>
         </div>
 
-        <template x-for="cat in ['Pizzas', 'Empanadas']">
-            <div class="mb-10" x-show="productos.some(p => p.categoria === cat)">
+        <template x-for="cat in ['Pizzas', 'Empanadas', 'Hot Dogs']">
+            <div class="mb-10" x-show="cat === 'Hot Dogs' || productos.some(p => p.categoria === cat)">
                 <div class="flex items-center gap-3 mb-5">
                     <h2 x-text="cat" class="text-sm font-black uppercase tracking-[0.2em] text-gray-400"></h2>
                     <div class="h-[1px] flex-1 bg-gradient-to-r from-gray-800 to-transparent"></div>
                 </div>
 
-                <div class="grid gap-3">
-                    <template x-for="p in productos.filter(i => i.categoria === cat)">
-                        <div class="glass-card product-card p-4 rounded-[24px] flex justify-between items-center border relative overflow-hidden"
-                            :class="!p.activo ? 'is-disabled' : 'border-white/5'">
+                <!-- SECCIÓN PIZZAS Y EMPANADAS -->
+                <template x-if="cat !== 'Hot Dogs'">
+                    <div class="grid gap-3">
+                        <template x-for="p in productos.filter(i => i.categoria === cat)">
+                            <div class="glass-card product-card p-4 rounded-[24px] flex justify-between items-center border relative overflow-hidden"
+                                :class="!p.activo ? 'is-disabled' : 'border-white/5'">
 
-                            <div class="flex-1 mr-4">
-                                <div class="flex flex-col gap-1">
-                                    <template x-if="!p.activo">
-                                        <span
-                                            class="w-fit bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black uppercase mb-1 shadow-lg shadow-red-600/30">
-                                            ¡AGOTADO!
-                                        </span>
-                                    </template>
-                                    <h3 class="font-bold text-gray-100 text-lg leading-tight" x-text="p.nombre"></h3>
+                                <div class="flex-1 mr-4">
+                                    <div class="flex flex-col gap-1">
+                                        <template x-if="!p.activo">
+                                            <span
+                                                class="w-fit bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black uppercase mb-1 shadow-lg shadow-red-600/30">
+                                                ¡AGOTADO!
+                                            </span>
+                                        </template>
+                                        <h3 class="font-bold text-gray-100 text-lg leading-tight" x-text="p.nombre"></h3>
 
-                                    <template x-if="p.descripcion">
-                                        <p class="text-[11px] text-gray-500 font-medium italic leading-snug"
-                                            x-text="p.descripcion"></p>
-                                    </template>
+                                        <template x-if="p.descripcion">
+                                            <p class="text-[11px] text-gray-500 font-medium italic leading-snug"
+                                                x-text="p.descripcion"></p>
+                                        </template>
 
-                                    <span class="text-amber-500 font-black text-sm mt-1">$<span
-                                            x-text="p.precio.toLocaleString()"></span></span>
+                                        <span class="text-amber-500 font-black text-sm mt-1">$<span
+                                                x-text="p.precio.toLocaleString()"></span></span>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center bg-black/40 rounded-2xl p-1 border border-white/5"
+                                    x-show="p.activo">
+                                    <button @click="restar(p.id)"
+                                        class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white/5 transition text-xl text-white">-</button>
+                                    <span class="w-8 text-center font-extrabold text-amber-500 text-lg"
+                                        x-text="cantidades[p.id] || 0"></span>
+                                    <button @click="sumar(p.id)"
+                                        class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500 text-black font-black shadow-lg text-xl">+</button>
                                 </div>
                             </div>
+                        </template>
+                    </div>
+                </template>
 
-                            <div class="flex items-center bg-black/40 rounded-2xl p-1 border border-white/5"
-                                x-show="p.activo">
-                                <button @click="restar(p.id)"
-                                    class="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white/5 transition text-xl text-white">-</button>
-                                <span class="w-8 text-center font-extrabold text-amber-500 text-lg"
-                                    x-text="cantidades[p.id] || 0"></span>
-                                <button @click="sumar(p.id)"
-                                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500 text-black font-black shadow-lg text-xl">+</button>
+                <!-- SECCIÓN HOT DOGS -->
+                <template x-if="cat === 'Hot Dogs'">
+                    <div class="space-y-3">
+                        <div class="glass-card p-5 rounded-[28px] border border-amber-500/20 relative overflow-hidden bg-gradient-to-br from-amber-500/5 to-transparent">
+                            <div class="flex justify-between items-start gap-3">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-2xl">🌭</span>
+                                        <h3 class="font-black text-gray-100 text-xl tracking-tight">Hot Dog</h3>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1 leading-snug">
+                                        Con aderezos a elección: Mayonesa, Salsa Golf, Ketchup, Savora, Papas, Cheddar, Chimi.
+                                    </p>
+                                    <p class="text-amber-500 font-black text-base mt-2 font-mono">$5.000</p>
+                                </div>
+                                <button type="button" @click="abrirModalHotDog()"
+                                    class="bg-gradient-to-r from-amber-500 to-yellow-500 text-black px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center gap-1.5 shrink-0">
+                                    <span class="text-sm">+</span>
+                                    <span>Armar</span>
+                                </button>
                             </div>
                         </div>
-                    </template>
-                </div>
+
+                        <!-- Lista de variantes de Hot Dogs armados en el pedido -->
+                        <template x-if="hotDogsPedidos.length > 0">
+                            <div class="space-y-2 mt-2">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-amber-400/80 px-1">
+                                    Hot Dogs en este pedido:
+                                </p>
+                                <template x-for="hd in hotDogsPedidos" :key="hd.id">
+                                    <div class="glass-card p-3.5 rounded-2xl border border-white/10 flex justify-between items-center bg-black/50">
+                                        <div class="flex-1 pr-3">
+                                            <p class="font-bold text-sm text-gray-100">
+                                                <span class="text-amber-400 font-black" x-text="hd.cant + 'x '"></span>Hot Dog
+                                            </p>
+                                            <p class="text-[11px] text-amber-300 font-medium mt-0.5" x-text="formatoAderezos(hd.aderezos)"></p>
+                                            <p class="text-[11px] font-mono font-bold text-gray-400 mt-1" x-text="'$' + (hd.cant * hd.precio).toLocaleString()"></p>
+                                        </div>
+                                        <div class="flex items-center bg-black/60 rounded-xl p-1 border border-white/10">
+                                            <button type="button" @click="restarHotDog(hd.id)"
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white text-base font-bold active:scale-90 transition-all">-</button>
+                                            <span class="w-7 text-center font-black text-amber-400 text-sm" x-text="hd.cant"></span>
+                                            <button type="button" @click="sumarHotDog(hd.id)"
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-500 text-black font-black text-base active:scale-90 transition-all">+</button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </template>
             </div>
         </template>
     </div>
@@ -184,6 +239,7 @@
         </div>
     </div>
 
+    <!-- MODAL DEL CARRITO / RESUMEN -->
     <div x-cloak x-show="showCart" x-transition.opacity
         class="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] p-6 flex items-center justify-center">
         <div class="glass-card w-full max-w-sm rounded-[40px] border border-white/10 flex flex-col max-h-[80vh]">
@@ -195,16 +251,94 @@
             <div class="flex-1 overflow-y-auto p-8 space-y-6">
                 <template x-for="item in detalleCarrito()">
                     <div class="flex justify-between items-center border-b border-white/5 pb-4">
-                        <div class="text-left">
+                        <div class="text-left pr-2">
                             <p class="font-bold text-gray-100 text-lg leading-tight" x-text="item.nombre"></p>
                             <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1"
                                 x-text="item.cant + ' Unidades'"></p>
+                            <template x-if="item.descripcion">
+                                <p class="text-[11px] text-amber-400/90 font-medium mt-1 leading-snug" x-text="item.descripcion"></p>
+                            </template>
                         </div>
-                        <p class="font-mono text-amber-500 font-black text-base">$<span
+                        <p class="font-mono text-amber-500 font-black text-base shrink-0">$<span
                                 x-text="(item.cant * item.precio).toLocaleString()"></span></p>
                     </div>
                 </template>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE SELECCIÓN DE ADEREZOS PARA HOT DOG -->
+    <div x-cloak x-show="showHotDogModal" x-transition.opacity
+        class="fixed inset-0 bg-black/90 backdrop-blur-md z-[70] p-4 flex items-center justify-center overflow-y-auto">
+        <div class="glass-card w-full max-w-sm rounded-[36px] border border-amber-500/30 p-6 flex flex-col my-auto shadow-2xl relative">
+            <div class="flex justify-between items-center pb-4 border-b border-white/10">
+                <div>
+                    <h3 class="text-lg font-black text-amber-500 flex items-center gap-2">
+                        🌭 Armar Hot Dog
+                    </h3>
+                    <p class="text-[11px] text-gray-400 font-medium">$5.000 c/u • Elige los aderezos</p>
+                </div>
+                <button type="button" @click="showHotDogModal = false"
+                    class="bg-white/10 hover:bg-white/20 p-2 rounded-full text-gray-300 font-black w-8 h-8 flex items-center justify-center">✕</button>
+            </div>
+
+            <!-- Selector de cantidad -->
+            <div class="py-4 border-b border-white/5 flex items-center justify-between">
+                <span class="text-xs uppercase tracking-wider font-bold text-gray-300">Cantidad de panchos:</span>
+                <div class="flex items-center bg-black/50 rounded-2xl p-1 border border-white/10">
+                    <button type="button" @click="if(hotDogCantTemp > 1) hotDogCantTemp--"
+                        class="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-white font-bold text-lg hover:bg-white/10 active:scale-90">-</button>
+                    <span class="w-10 text-center font-black text-amber-400 text-lg" x-text="hotDogCantTemp"></span>
+                    <button type="button" @click="hotDogCantTemp++"
+                        class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-500 text-black font-black text-lg active:scale-90">+</button>
+                </div>
+            </div>
+
+            <!-- Lista de Aderezos con chips -->
+            <div class="py-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-amber-400/80">Aderezos:</span>
+                    <div class="flex gap-2">
+                        <button type="button" @click="limpiarAderezos()"
+                            class="text-[9px] text-gray-400 uppercase font-bold hover:text-white px-2 py-0.5 rounded bg-white/5">Solo</button>
+                        <button type="button" @click="seleccionarTodosAderezos()"
+                            class="text-[9px] text-amber-400 uppercase font-bold hover:text-amber-300 px-2 py-0.5 rounded bg-amber-500/10">Todos</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <template x-for="ad in aderezosDisponibles" :key="ad.code">
+                        <button type="button" @click="toggleAderezo(ad.code)"
+                            class="p-2.5 rounded-2xl border text-left flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                            :class="selectedAderezos.includes(ad.code) 
+                                ? 'bg-amber-500/20 border-amber-500 text-white shadow-lg shadow-amber-500/10 font-bold' 
+                                : 'bg-black/30 border-white/10 text-gray-400 hover:border-white/20'">
+                            <span class="text-sm" x-text="ad.icon"></span>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs truncate" x-text="ad.label"></p>
+                            </div>
+                            <template x-if="selectedAderezos.includes(ad.code)">
+                                <span class="text-amber-400 text-xs font-black">✓</span>
+                            </template>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Resumen del Pancho -->
+            <div class="bg-black/40 rounded-2xl p-3 border border-white/5 mb-4 text-left">
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Detalle:</p>
+                <p class="text-xs text-amber-300 font-medium mt-0.5 leading-snug"
+                    x-text="hotDogCantTemp + 'x Pancho (' + (selectedAderezos.length > 0 ? selectedAderezos.map(c => aderezosDisponibles.find(a => a.code === c)?.nombre).join(', ') : 'Solo / Sin aderezos') + ')'"></p>
+                <p class="text-xs font-mono font-bold text-emerald-400 mt-1"
+                    x-text="'Subtotal: $' + (hotDogCantTemp * 5000).toLocaleString()"></p>
+            </div>
+
+            <!-- Botón confirmar -->
+            <button type="button" @click="confirmarAgregarHotDog()"
+                class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 text-black py-3.5 rounded-2xl font-black uppercase text-xs tracking-widest active:scale-95 transition-all shadow-lg shadow-amber-500/20">
+                Agregar al Ticket
+            </button>
         </div>
     </div>
 
@@ -215,13 +349,29 @@
                 showCart: false,
                 cantidades: {},
                 cliente: '',
+
+                // Estado de Hot Dogs y Aderezos
+                showHotDogModal: false,
+                hotDogCantTemp: 1,
+                selectedAderezos: [],
+                hotDogsPedidos: [], // [ { id, cant, aderezos: ['M', 'K'], precio: 5000 } ]
+                aderezosDisponibles: [
+                    { code: 'M', nombre: 'Mayonesa', label: 'M - Mayonesa', icon: '🟡' },
+                    { code: 'G', nombre: 'Salsa Golf', label: 'G - Salsa Golf', icon: '🟠' },
+                    { code: 'K', nombre: 'Ketchup', label: 'K - Ketchup', icon: '🔴' },
+                    { code: 'S', nombre: 'Savora', label: 'S - Savora', icon: '🟡' },
+                    { code: 'P', nombre: 'Papas', label: 'P - Papas', icon: '🍟' },
+                    { code: 'Q', nombre: 'Cheddar', label: 'Q - Cheddar', icon: '🧀' },
+                    { code: 'CH', nombre: 'Chimi', label: 'CH - Chimi', icon: '🌿' }
+                ],
+
                 async init() {
                     const apiUrl = 'https://a365.com.ar/api/pizzas/get?_=' + Date.now();
                     try {
                         const res = await fetch(apiUrl);
                         if (!res.ok) throw new Error('HTTP ' + res.status);
                         const data = await res.json();
-                        this.productos = (Array.isArray(data) ? data : []).map(r => ({
+                        let list = (Array.isArray(data) ? data : []).map(r => ({
                             id: Number(r.id) || 0,
                             nombre: String(r.nombre || '').trim(),
                             descripcion: (r.descripcion === null || r.descripcion === undefined) ? '' : String(r.descripcion).trim(),
@@ -229,6 +379,19 @@
                             categoria: String(r.categoria || 'General').trim(),
                             activo: !!r.activo
                         })).filter(p => p.nombre);
+
+                        // Asegurar que Hot Dog esté en la lista si la API remota aún no lo tiene
+                        if (!list.some(p => p.categoria === 'Hot Dogs' || p.nombre.toLowerCase() === 'hot dog')) {
+                            list.push({
+                                id: 100,
+                                nombre: "Hot Dog",
+                                descripcion: "Con aderezos a elección",
+                                precio: 5000,
+                                categoria: "Hot Dogs",
+                                activo: true
+                            });
+                        }
+                        this.productos = list;
                         console.log('Productos cargados desde API:', this.productos);
                     } catch (e) {
                         console.error('API fetch error:', e);
@@ -247,6 +410,8 @@
                         }
                     }
                 },
+
+                // Métodos para Pizzas y Empanadas
                 sumar(id) {
                     this.cantidades[id] = (this.cantidades[id] || 0) + 1;
                     if (navigator.vibrate) navigator.vibrate(15);
@@ -257,42 +422,157 @@
                         if (navigator.vibrate) navigator.vibrate(15);
                     }
                 },
+
+                // Métodos para Hot Dogs y Aderezos
+                abrirModalHotDog() {
+                    this.hotDogCantTemp = 1;
+                    this.selectedAderezos = [];
+                    this.showHotDogModal = true;
+                },
+                toggleAderezo(code) {
+                    const idx = this.selectedAderezos.indexOf(code);
+                    if (idx > -1) {
+                        this.selectedAderezos.splice(idx, 1);
+                    } else {
+                        this.selectedAderezos.push(code);
+                    }
+                    if (navigator.vibrate) navigator.vibrate(10);
+                },
+                limpiarAderezos() {
+                    this.selectedAderezos = [];
+                },
+                seleccionarTodosAderezos() {
+                    this.selectedAderezos = this.aderezosDisponibles.map(a => a.code);
+                },
+                confirmarAgregarHotDog() {
+                    if (this.hotDogCantTemp <= 0) return;
+                    const sorted = [...this.selectedAderezos].sort();
+                    const key = sorted.join(',');
+                    const existente = this.hotDogsPedidos.find(h => [...h.aderezos].sort().join(',') === key);
+                    if (existente) {
+                        existente.cant += this.hotDogCantTemp;
+                    } else {
+                        this.hotDogsPedidos.push({
+                            id: 'hd_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
+                            cant: this.hotDogCantTemp,
+                            aderezos: sorted,
+                            precio: 5000
+                        });
+                    }
+                    this.showHotDogModal = false;
+                    if (navigator.vibrate) navigator.vibrate(20);
+                },
+                sumarHotDog(id) {
+                    const item = this.hotDogsPedidos.find(h => h.id === id);
+                    if (item) {
+                        item.cant++;
+                        if (navigator.vibrate) navigator.vibrate(15);
+                    }
+                },
+                restarHotDog(id) {
+                    const idx = this.hotDogsPedidos.findIndex(h => h.id === id);
+                    if (idx > -1) {
+                        if (this.hotDogsPedidos[idx].cant > 1) {
+                            this.hotDogsPedidos[idx].cant--;
+                        } else {
+                            this.hotDogsPedidos.splice(idx, 1);
+                        }
+                        if (navigator.vibrate) navigator.vibrate(15);
+                    }
+                },
+                formatoAderezos(aderezos) {
+                    if (!aderezos || aderezos.length === 0) return 'Solo / Sin aderezos';
+                    return aderezos.map(code => {
+                        const ad = this.aderezosDisponibles.find(a => a.code === code);
+                        return ad ? `${ad.code} (${ad.nombre})` : code;
+                    }).join(' • ');
+                },
+                formatoAderezosTicket(aderezos) {
+                    if (!aderezos || aderezos.length === 0) return 'Solo';
+                    return aderezos.map(code => {
+                        const ad = this.aderezosDisponibles.find(a => a.code === code);
+                        return ad ? `${ad.code}-${ad.nombre}` : code;
+                    }).join(', ');
+                },
+
+                // Totales
                 total() {
-                    return Object.keys(this.cantidades).reduce((acc, id) => {
+                    const totalPizzasEmpanadas = Object.keys(this.cantidades).reduce((acc, id) => {
                         const p = this.productos.find(i => i.id == id);
                         return acc + (p ? p.precio * this.cantidades[id] : 0);
                     }, 0);
+                    const totalHotDogs = this.hotDogsPedidos.reduce((acc, h) => {
+                        return acc + (h.precio * h.cant);
+                    }, 0);
+                    return totalPizzasEmpanadas + totalHotDogs;
                 },
                 totalTransfe() { return Math.round(this.total() * 1.10) },
-                itemsCount() { return Object.values(this.cantidades).reduce((s, n) => s + (n || 0), 0) },
+                itemsCount() { 
+                    const countPizzas = Object.values(this.cantidades).reduce((s, n) => s + (n || 0), 0);
+                    const countHotDogs = this.hotDogsPedidos.reduce((s, h) => s + h.cant, 0);
+                    return countPizzas + countHotDogs;
+                },
                 toggleCart() { if (this.itemsCount() > 0) this.showCart = !this.showCart },
+
                 detalleCarrito() {
-                    return Object.keys(this.cantidades).filter(id => this.cantidades[id] > 0).map(id => {
+                    const items = Object.keys(this.cantidades).filter(id => this.cantidades[id] > 0).map(id => {
                         const p = this.productos.find(i => i.id == id);
-                        return { nombre: p.nombre, descripcion: p.descripcion || '', cant: this.cantidades[id], precio: p.precio };
+                        return { 
+                            nombre: p ? p.nombre : 'Producto', 
+                            descripcion: p ? (p.descripcion || '') : '', 
+                            cant: this.cantidades[id], 
+                            precio: p ? p.precio : 0 
+                        };
                     });
+
+                    this.hotDogsPedidos.forEach(hd => {
+                        items.push({
+                            nombre: 'Hot Dog',
+                            descripcion: this.formatoAderezosTicket(hd.aderezos),
+                            cant: hd.cant,
+                            precio: hd.precio
+                        });
+                    });
+
+                    return items;
                 },
+
                 limpiarPedido() {
-                    if (confirm('¿Vaciamos el ticket actual?')) { this.cantidades = {}; this.cliente = ''; this.showCart = false; }
+                    if (confirm('¿Vaciamos el ticket actual?')) { 
+                        this.cantidades = {}; 
+                        this.hotDogsPedidos = [];
+                        this.cliente = ''; 
+                        this.showCart = false; 
+                    }
                 },
+
                 enviarWhatsApp() {
                     if (this.total() === 0) return alert("¡Ticket vacío!");
                     let msj = `🍕 *LA PIZZA - NUEVO PEDIDO*%0A*Cliente:* ${this.cliente || 'Mostrador'}%0A%0A`;
-                    this.detalleCarrito().forEach(i => msj += `• ${i.cant}x ${i.nombre}%0A`);
+                    this.detalleCarrito().forEach(i => {
+                        const desc = i.descripcion ? ` _(${i.descripcion})_` : '';
+                        msj += `• ${i.cant}x ${i.nombre}${desc}%0A`;
+                    });
                     msj += `%0A💵 *Total Efectivo: $${this.total().toLocaleString()}*%0A💳 *Total Transferencia: $${this.totalTransfe().toLocaleString()}*`;
                     window.open(`https://wa.me/1161060970?text=${msj}`, '_blank');
                 },
+
                 generarTicket() {
                     if (this.total() === 0) return alert('¡Ticket vacío!');
                     if (!this.cliente.trim()) return alert('⚠️ Por favor ingresa el nombre del cliente');
 
-                    // Generar contenido del ticket en texto (más portable para compartir)
+                    const lineas = this.detalleCarrito().map(i => {
+                        const desc = i.descripcion ? ` - ${i.descripcion}` : '';
+                        return `${i.cant}x ${i.nombre}${desc}  $${(i.cant * i.precio).toLocaleString()}`;
+                    }).join('\n');
+
+                    // Generar contenido del ticket en texto
                     const ticketTexto = `LA PIZZA - COMPROBANTE DE VENTA
 
 Fecha: ${new Date().toLocaleString()}
 Cliente: ${this.cliente}
 
-${this.detalleCarrito().map(i => `${i.cant}x ${i.nombre}${i.descripcion ? ' - ' + i.descripcion : ''}  $${(i.cant * i.precio).toLocaleString()}`).join('\n')}
+${lineas}
 
 ─────────────────────────────
 TOTAL EFECTIVO: $${this.total().toLocaleString()}

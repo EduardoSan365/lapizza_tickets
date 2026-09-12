@@ -22,5 +22,8 @@ const PRODUCTOS = [
     { id: 18, nombre: "Espinaca y Muzza", descripcion: "", precio: 2500, categoria: "Empanadas", activo: true },
     { id: 19, nombre: "Ches Burguer", descripcion: "", precio: 2500, categoria: "Empanadas", activo: true },
     { id: 20, nombre: "Quesos y cebolla", descripcion: "", precio: 2500, categoria: "Empanadas", activo: true },
-    { id: 21, nombre: "Barbacoa BBQ", descripcion: "", precio: 2500, categoria: "Empanadas", activo: true }
+    { id: 21, nombre: "Barbacoa BBQ", descripcion: "", precio: 2500, categoria: "Empanadas", activo: true },
+
+    // HOT DOGS
+    { id: 100, nombre: "Hot Dog", descripcion: "Con aderezos a elección", precio: 5000, categoria: "Hot Dogs", activo: true }
 ];
