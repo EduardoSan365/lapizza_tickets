@@ -624,12 +624,13 @@
 
                 enviarWhatsApp() {
                     if (this.total() === 0) return alert("¡Ticket vacío!");
-                    let msj = `🍕 *LA PIZZA - NUEVO PEDIDO*%0A*Cliente:* ${this.cliente || 'Mostrador'}%0A%0A`;
+                    let msj = `🍕 *LA PIZZA - COMPROBANTE*%0A📅 *Fecha:* ${new Date().toLocaleString()}%0A👤 *Cliente:* ${this.cliente || 'Mostrador'}%0A%0A`;
                     this.detalleCarrito().forEach(i => {
+                        const icono = i.icono ? `${i.icono} ` : '';
                         const desc = i.descripcion ? ` (${i.descripcion})` : '';
-                        msj += `• ${i.cant}x ${i.nombre}${desc}%0A`;
+                        msj += `• ${icono}${i.cant}x ${i.nombre}${desc}%0A`;
                     });
-                    msj += `%0A💵 *Total Efectivo: $${this.total().toLocaleString()}*%0A💳 *Total Transferencia: $${this.totalTransfe().toLocaleString()}*%0A*Alias:* valeriacabrera1985`;
+                    msj += `%0A─────────────────────────────%0A💵 *TOTAL EFECT: $${this.total().toLocaleString()}*%0A💳 *TOTAL TRANS: $${this.totalTransfe().toLocaleString()}*%0A🏦 *Alias:* valeriacabrera1985%0A─────────────────────────────%0A✨ ¡Muchas gracias por tu compra! ✨`;
                     window.open(`https://wa.me/1161060970?text=${msj}`, '_blank');
                 },
 
@@ -638,25 +639,26 @@
                     if (!this.cliente.trim()) return alert('⚠️ Por favor ingresa el nombre del cliente');
 
                     const lineas = this.detalleCarrito().map(i => {
+                        const icono = i.icono ? `${i.icono} ` : '';
                         const desc = i.descripcion ? ` (${i.descripcion})` : '';
-                        return `${i.cant}x ${i.nombre}${desc}  $${(i.cant * i.precio).toLocaleString()}`;
+                        return `${icono}${i.cant}x ${i.nombre}${desc}  $${(i.cant * i.precio).toLocaleString()}`;
                     }).join('\n');
 
-                    // Generar contenido del ticket en texto
-                    const ticketTexto = `LA PIZZA - COMPROBANTE
+                    // Generar contenido del ticket en texto con emojis
+                    const ticketTexto = `🍕 LA PIZZA - COMPROBANTE
 
-Fecha: ${new Date().toLocaleString()}
-Cliente: ${this.cliente}
+📅 Fecha: ${new Date().toLocaleString()}
+👤 Cliente: ${this.cliente}
 
 ${lineas}
 
 ─────────────────────────────
-TOTAL EFECT: $${this.total().toLocaleString()}
-TOTAL TRANS: $${this.totalTransfe().toLocaleString()}
-Alias: valeriacabrera1985
+💵 TOTAL EFECT: $${this.total().toLocaleString()}
+💳 TOTAL TRANS: $${this.totalTransfe().toLocaleString()}
+🏦 Alias: valeriacabrera1985
 ─────────────────────────────
 
-¡Gracias por tu compra!`;
+✨ ¡Muchas gracias por tu compra! ✨`;
 
                     // Intentar usar Web Share API (abre barra de compartir en móviles)
                     if (navigator.share) {
