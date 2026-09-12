@@ -527,20 +527,25 @@
                         const icono = p && p.categoria === 'Empanadas' ? '🥟' : '🍕';
                         return { 
                             nombre: p ? p.nombre : 'Producto', 
-                            descripcion: p ? (p.descripcion || '') : '', 
+                            descripcion: '', // Sin descripción para pizzas y empanadas en ticket
                             cant: this.cantidades[id], 
                             precio: p ? p.precio : 0,
-                            icono: icono
+                            icono: icono,
+                            isHotDog: false
                         };
                     });
 
                     this.hotDogsPedidos.forEach(hd => {
+                        const iniciales = (hd.aderezos && hd.aderezos.length > 0)
+                            ? hd.aderezos.join(', ')
+                            : 'Solo';
                         items.push({
                             nombre: 'Hot Dog',
-                            descripcion: this.formatoAderezosTicket(hd.aderezos),
+                            descripcion: iniciales,
                             cant: hd.cant,
                             precio: hd.precio,
-                            icono: '🌭'
+                            icono: '🌭',
+                            isHotDog: true
                         });
                     });
 
@@ -560,7 +565,7 @@
                     if (this.total() === 0) return alert("¡Ticket vacío!");
                     let msj = `🍕 *LA PIZZA - NUEVO PEDIDO*%0A*Cliente:* ${this.cliente || 'Mostrador'}%0A%0A`;
                     this.detalleCarrito().forEach(i => {
-                        const desc = i.descripcion ? ` _(${i.descripcion})_` : '';
+                        const desc = i.descripcion ? ` (${i.descripcion})` : '';
                         msj += `• ${i.cant}x ${i.nombre}${desc}%0A`;
                     });
                     msj += `%0A💵 *Total Efectivo: $${this.total().toLocaleString()}*%0A💳 *Total Transferencia: $${this.totalTransfe().toLocaleString()}*`;
@@ -572,7 +577,7 @@
                     if (!this.cliente.trim()) return alert('⚠️ Por favor ingresa el nombre del cliente');
 
                     const lineas = this.detalleCarrito().map(i => {
-                        const desc = i.descripcion ? ` - ${i.descripcion}` : '';
+                        const desc = i.descripcion ? ` (${i.descripcion})` : '';
                         return `${i.cant}x ${i.nombre}${desc}  $${(i.cant * i.precio).toLocaleString()}`;
                     }).join('\n');
 
