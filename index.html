@@ -161,9 +161,9 @@
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2">
                                         <span class="text-2xl">🌭</span>
-                                        <h3 class="font-black text-gray-100 text-xl tracking-tight">Hot Dog</h3>
+                                        <h3 class="font-black text-gray-100 text-xl tracking-tight" x-text="nombreHotDog()">Hot Dog</h3>
                                     </div>
-                                    <p class="text-xs text-gray-400 mt-1 leading-snug">
+                                    <p class="text-xs text-gray-400 mt-1 leading-snug" x-text="descripcionHotDog()">
                                         Con aderezos a elección: Mayonesa, Salsa Golf, Ketchup, Savora, Papas, Cheddar,
                                         Chimi.
                                     </p>
@@ -434,7 +434,7 @@
                         })).filter(p => p.nombre);
 
                         // Asegurar que Hot Dog esté en la lista si la API remota aún no lo tiene
-                        if (!list.some(p => p.categoria === 'Hot Dogs' || p.nombre.toLowerCase() === 'hot dog')) {
+                        if (!list.some(p => this.isHotDogProd(p))) {
                             list.push({
                                 id: 100,
                                 nombre: "Hot Dog",
@@ -477,8 +477,25 @@
                 },
 
                 // Métodos para Hot Dogs y Aderezos
+                isHotDogProd(p) {
+                    if (!p) return false;
+                    const cat = (p.categoria || '').toLowerCase().trim();
+                    const nom = (p.nombre || '').toLowerCase().trim();
+                    return cat.includes('hot dog') || cat.includes('hog dog') || nom.includes('hot dog') || nom.includes('hog dog') || nom.includes('pancho');
+                },
+                getHotDog() {
+                    return this.productos.find(p => this.isHotDogProd(p));
+                },
+                nombreHotDog() {
+                    const hd = this.getHotDog();
+                    return hd ? hd.nombre : 'Hot Dog';
+                },
+                descripcionHotDog() {
+                    const hd = this.getHotDog();
+                    return (hd && hd.descripcion) ? hd.descripcion : 'Con aderezos a elección: Mayonesa, Salsa Golf, Ketchup, Savora, Papas, Cheddar, Chimi.';
+                },
                 precioHotDog() {
-                    const hd = this.productos.find(p => p.categoria === 'Hot Dogs' || p.nombre.toLowerCase() === 'hot dog');
+                    const hd = this.getHotDog();
                     return hd ? hd.precio : 5000;
                 },
                 abrirModalHotDog() {
