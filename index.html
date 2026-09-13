@@ -233,10 +233,13 @@
                             :class="aliasCopiado 
                                 ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' 
                                 : 'bg-sky-500/15 border-sky-500/30 text-sky-300 hover:bg-sky-500/25'">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
-                            <span x-text="aliasCopiado ? '¡Alias copiado! Abriendo MP...' : 'Copiar Alias & Abrir MP'"></span>
+                            <span
+                                x-text="aliasCopiado ? '¡Alias copiado! Abriendo MP...' : 'Copiar Alias & Abrir MP'"></span>
                         </button>
                     </div>
                 </div>
@@ -302,8 +305,10 @@
                     :class="aliasCopiado 
                         ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' 
                         : 'bg-sky-500/20 border-sky-500/40 text-sky-300 hover:bg-sky-500/30'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                     <span x-text="aliasCopiado ? '¡Copiado!' : 'Copiar y Abrir MP'"></span>
                 </button>
@@ -624,13 +629,13 @@
 
                 enviarWhatsApp() {
                     if (this.total() === 0) return alert("¡Ticket vacío!");
-                    let msj = `🍕 *LA PIZZA - COMPROBANTE*%0A📅 *Fecha:* ${new Date().toLocaleString()}%0A👤 *Cliente:* ${this.cliente || 'Mostrador'}%0A%0A`;
+                    let msj = `🍕 *LA PIZZA - COMPROBANTE*%0A📅 *Fecha:* ${new Date().toLocaleDateString('es-AR')}%0A👤 *Cliente:* ${this.cliente || 'Mostrador'}%0A%0A`;
                     this.detalleCarrito().forEach(i => {
                         const icono = i.icono ? `${i.icono} ` : '';
                         const desc = i.descripcion ? ` (${i.descripcion})` : '';
                         msj += `• ${icono}${i.cant}x ${i.nombre}${desc}%0A`;
                     });
-                    msj += `%0A─────────────────────────────%0A💵 *TOTAL EFECT: $${this.total().toLocaleString()}*%0A💳 *TOTAL TRANS: $${this.totalTransfe().toLocaleString()}*%0A🏦 *Alias:* valeriacabrera1985%0A─────────────────────────────%0A✨ ¡Muchas gracias por tu compra! ✨`;
+                    msj += `%0A──────────────────%0A💳 *TOTAL:*%0A$${this.totalTransfe().toLocaleString()}%0A🏦 *TRANSF: Alias:*%0Avaleriacabrera1985%0A💵 *DESC/EFECT 10%:*%0A$${this.total().toLocaleString()}%0A──────────────────%0A✨¡Gracias por tu compra!✨`;
                     window.open(`https://wa.me/1161060970?text=${msj}`, '_blank');
                 },
 
@@ -647,18 +652,21 @@
                     // Generar contenido del ticket en texto con emojis
                     const ticketTexto = `🍕 LA PIZZA - COMPROBANTE
 
-📅 Fecha: ${new Date().toLocaleString()}
+📅 Fecha: ${new Date().toLocaleDateString('es-AR')}
 👤 Cliente: ${this.cliente}
 
 ${lineas}
 
-─────────────────────────────
-💵 TOTAL EFECT: $${this.total().toLocaleString()}
-💳 TOTAL TRANS: $${this.totalTransfe().toLocaleString()}
-🏦 Alias: valeriacabrera1985
-─────────────────────────────
+──────────────────
+💳 TOTAL:
+$${this.totalTransfe().toLocaleString()}
+🏦 TRANSF: Alias:
+valeriacabrera1985
+💵 DESC/EFECT 10%:
+$${this.total().toLocaleString()}
+──────────────────
 
-✨ ¡Muchas gracias por tu compra! ✨`;
+✨¡Gracias por tu compra!✨`;
 
                     // Intentar usar Web Share API (abre barra de compartir en móviles)
                     if (navigator.share) {
